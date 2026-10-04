@@ -1,0 +1,7 @@
+{
+  "name": "CAdesk - Working Papers",
+  "description": "AI-native financial and tax workspace where AI agents prepare the work and Chartered Accountants review and sign off.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

@@ -1,0 +1,13 @@
+{
+  "id": "salary_slip_mar2026",
+  "documentName": "SalarySlip_March2026_TechCorp.pdf",
+  "documentType": "salary_slips",
+  "groundTruth": {
+    "gross_salary": 237500,
+    "hra_exemption": 35000,
+    "provident_fund": 12500
+  },
+  "criticalFields": [
+    "gross_salary"
+  ]
+}

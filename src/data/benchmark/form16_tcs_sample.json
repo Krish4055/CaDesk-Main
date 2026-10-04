@@ -1,0 +1,20 @@
+{
+  "id": "form16_tcs_2026",
+  "documentName": "Form16_TCS_FY2025-26_ArjunMehta.pdf",
+  "documentType": "form16",
+  "groundTruth": {
+    "pan_deductor": "AAACB2948F",
+    "pan_employee": "ABCDE1234F",
+    "gross_salary": 2850000,
+    "hra_exemption": 420000,
+    "standard_deduction": 75000,
+    "section_80c": 150000,
+    "section_80ccd1b": 50000,
+    "tds_deducted": 412500
+  },
+  "criticalFields": [
+    "gross_salary",
+    "tds_deducted",
+    "pan_employee"
+  ]
+}

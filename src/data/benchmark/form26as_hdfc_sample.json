@@ -1,0 +1,15 @@
+{
+  "id": "form26as_hdfc_2026",
+  "documentName": "Form26AS_AY2026-27_ArjunMehta.pdf",
+  "documentType": "bank_statements",
+  "groundTruth": {
+    "pan_employee": "ABCDE1234F",
+    "gross_salary": 2850000,
+    "tds_deducted": 412500,
+    "section_code": "192"
+  },
+  "criticalFields": [
+    "gross_salary",
+    "tds_deducted"
+  ]
+}

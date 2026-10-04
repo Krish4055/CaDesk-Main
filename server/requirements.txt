@@ -1,0 +1,25 @@
+# =====================================================================
+# CAdesk AI Sidecar Dependencies
+# =====================================================================
+
+fastapi>=0.110.0
+uvicorn>=0.28.0
+pydantic>=2.6.0
+python-multipart>=0.0.9
+httpx>=0.27.0
+python-dotenv>=1.0.0
+
+# Document & PDF Image Processing
+pymupdf>=1.24.0
+pillow>=10.2.0
+
+# Neural Models & Embeddings
+transformers>=4.40.0
+sentence-transformers>=2.7.0
+torch>=2.2.0
+
+# ---------------------------------------------------------------------
+# CUDA PYTORCH INSTALLATION NOTE (For GPU acceleration):
+# If running on Windows / Linux with NVIDIA GPU, install the CUDA build:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# ---------------------------------------------------------------------
