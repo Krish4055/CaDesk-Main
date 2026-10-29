@@ -14,3 +14,4 @@ demo_recordings/
 venv/
 test-artifacts/
 .playwright/
+push_to_github.bat
