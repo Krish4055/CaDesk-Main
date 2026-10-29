@@ -30,7 +30,7 @@ Because the statutory tax calculation engine, PDF text extraction, document clas
    - **Name**: `cadesk`
    - **Branch**: `main`
    - **Root Directory**: Leave blank (or `./` if asked)
-   - **Build Command**: `npm install && npm run build`
+   - **Build Command**: `npm install --legacy-peer-deps && npm run build`
    - **Publish Directory**: `dist`
 4. **Important**: Configure SPA client-side routing:
    - Go to **Redirects / Rewrites** in the service settings.
@@ -49,7 +49,7 @@ If you prefer deploying as a Node Web Service:
 2. Select your repository `Krish4055/CaDesk-Main`.
 3. Configure settings:
    - **Runtime**: `Node`
-   - **Build Command**: `npm install && npm run build`
+   - **Build Command**: `npm install --legacy-peer-deps && npm run build`
    - **Start Command**: `npm start` (runs `node server.cjs` to serve `dist`)
 4. Click **Create Web Service**.
 
