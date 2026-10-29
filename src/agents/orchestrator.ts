@@ -19,6 +19,7 @@ export interface AgentQueryContext {
   clientName?: string;
   pan?: string;
   inputs?: TaxInputs;
+  taxResult?: any;
   userRole?: string;
   activeDocuments?: string[];
 }
@@ -90,7 +91,34 @@ export class AgentOrchestrator {
       evaluatedInputs.longTermCapitalGains = (evaluatedInputs.longTermCapitalGains || 0) + 100000;
     }
 
-    const taxResult: TaxComparisonResult = computeTaxComparison(evaluatedInputs);
+    const hasLiveResult = context.taxResult && context.taxResult.new && context.taxResult.old;
+    const isWhatIf = lowerPrompt.includes('what-if') || lowerPrompt.includes('increase') || lowerPrompt.includes('if I buy');
+
+    let taxResult: TaxComparisonResult;
+    if (hasLiveResult && !isWhatIf) {
+      taxResult = {
+        newRegime: {
+          totalTaxLiability: context.taxResult.new.total_tax,
+          netTaxPayable: context.taxResult.net_payable_or_refund,
+          totalDeductions: 75000 + (context.inputs?.employerNps || context.inputs?.section80CCD2 || 0),
+          effectiveTaxRate: (context.taxResult.new.total_tax / (context.inputs?.grossSalary || 1800000)) * 100,
+        },
+        oldRegime: {
+          totalTaxLiability: context.taxResult.old.total_tax,
+          netTaxPayable: context.taxResult.old.total_tax - (context.taxResult.tds_credit || 0),
+          totalDeductions: 50000,
+          effectiveTaxRate: (context.taxResult.old.total_tax / (context.inputs?.grossSalary || 1800000)) * 100,
+        },
+        betterRegime: context.taxResult.recommended,
+        savings: context.taxResult.savings,
+        rulesAsOf: 'Budget 2025 (FY 2025-26)',
+        financialYear: '2025-26',
+        inputs: context.inputs || baseInputs,
+        missedDeductions: [],
+      } as any;
+    } else {
+      taxResult = computeTaxComparison(evaluatedInputs);
+    }
 
     addStep({
       step: '3. Deterministic Tax Computation',

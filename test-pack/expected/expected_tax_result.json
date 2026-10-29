@@ -1,0 +1,132 @@
+{
+  "persona": "Rohan Mehta",
+  "inputs_to_engine": {
+    "gross_salary": 1800000,
+    "basic": 720000,
+    "hra": 360000,
+    "employer_nps": 72000,
+    "rent_paid": 360000,
+    "professional_tax": 2500,
+    "interest_savings": 18000,
+    "interest_fd": 42000,
+    "dividend": 25000,
+    "stcg_111a": 60000,
+    "ltcg_112a": 210000,
+    "sec80c": 150000,
+    "d_self": 22000,
+    "d_parents": 48000,
+    "nps_1b": 50000
+  },
+  "tds_credit": 201700,
+  "cross_checks": [
+    {
+      "check": "Form 16 TDS == 26AS salary TDS",
+      "result": "PASS",
+      "values": [
+        195000,
+        195000
+      ]
+    },
+    {
+      "check": "Form 16 gross salary == AIS salary",
+      "result": "PASS",
+      "values": [
+        1800000,
+        1800000
+      ]
+    },
+    {
+      "check": "Payslip annualised (150000x12) == Form 16 gross",
+      "result": "PASS"
+    },
+    {
+      "check": "Capital gains statement total sale value vs AIS securities",
+      "result": "PASS",
+      "note": "940000 sale value in both"
+    },
+    {
+      "check": "80C total capped at 150000",
+      "result": "PASS (at cap - no headroom left)"
+    }
+  ],
+  "flags": [
+    {
+      "severity": "info",
+      "flag": "Employee opted new regime in payroll, but old regime was computed too: new regime is cheaper by INR 23,556"
+    },
+    {
+      "severity": "medium",
+      "flag": "Other income (FD interest 42000 + dividend 25000 + savings interest 18000) is not in Form 16 - must be added in ITR; employer TDS did not cover it"
+    },
+    {
+      "severity": "info",
+      "flag": "HRA exemption (INR 288000) and 80C/80D/80CCD(1B) are lost under new regime"
+    },
+    {
+      "severity": "info",
+      "flag": "LTCG 112A: INR 125000 exemption applied; taxable LTCG = 85000"
+    },
+    {
+      "severity": "info",
+      "flag": "Advance tax not required: tax payable after TDS is a refund"
+    }
+  ],
+  "result": {
+    "new": {
+      "regime": "new",
+      "salary_income": 1725000,
+      "hra_exemption": 0,
+      "standard_deduction": 75000,
+      "professional_tax": 0,
+      "other_income": 85000,
+      "chapter_VIA": {
+        "80CCD(2)": 72000
+      },
+      "total_deductions": 72000,
+      "normal_taxable_income": 1738000,
+      "stcg_111a": 60000,
+      "ltcg_112a_taxable": 85000,
+      "total_income": 1883000,
+      "tax_on_normal": 147600.0,
+      "tax_stcg": 12000.0,
+      "tax_ltcg": 10625.0,
+      "rebate_87A": 0,
+      "marginal_relief": 0,
+      "tax_before_cess": 170225.0,
+      "cess": 6809,
+      "total_tax": 177034.0
+    },
+    "old": {
+      "regime": "old",
+      "salary_income": 1459500.0,
+      "hra_exemption": 288000.0,
+      "standard_deduction": 50000,
+      "professional_tax": 2500,
+      "other_income": 85000,
+      "chapter_VIA": {
+        "80C": 150000,
+        "80D": 70000,
+        "80CCD(1B)": 50000,
+        "80CCD(2)": 72000,
+        "80TTA": 10000
+      },
+      "total_deductions": 352000,
+      "normal_taxable_income": 1192500.0,
+      "stcg_111a": 60000,
+      "ltcg_112a_taxable": 85000,
+      "total_income": 1337500.0,
+      "tax_on_normal": 170250.0,
+      "tax_stcg": 12000.0,
+      "tax_ltcg": 10625.0,
+      "rebate_87A": 0,
+      "marginal_relief": 0,
+      "tax_before_cess": 192875.0,
+      "cess": 7715,
+      "total_tax": 200590.0
+    },
+    "recommended": "new",
+    "savings": 23556.0,
+    "tds_credit": 201700,
+    "net_payable_or_refund": -24666.0
+  }
+}

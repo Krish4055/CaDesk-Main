@@ -71,6 +71,8 @@ export interface AuditLogEntry {
   previousValue?: string;
   newValue?: string;
   immutableHash: string;
+  actor?: string;
+  hash?: string;
 }
 
 export interface WorkingPaperNote {
@@ -85,7 +87,9 @@ export interface WorkingPaperNote {
 export interface ClientProfile {
   id: string;
   name: string;
+  pan?: string;
   panMasked: string;
+  employer?: string;
   email: string;
   phone: string;
   incomeType: IncomeType;

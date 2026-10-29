@@ -54,10 +54,12 @@ function AppLayout() {
 
         {/* CA Practice Perspectives */}
         <Route path="/ca/dashboard" element={<CADashboard />} />
+        <Route path="/ca/workspace" element={<CAClientWorkspace />} />
         <Route path="/ca/workspace/:clientId" element={<CAClientWorkspace />} />
         <Route path="/ca/requests" element={<DocumentRequestAutomation />} />
 
         {/* Cross-Cutting */}
+        <Route path="/reports" element={<Reports />} />
         <Route path="/reports/:clientId" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
 

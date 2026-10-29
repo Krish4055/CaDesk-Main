@@ -97,17 +97,27 @@ export class AIChatService {
 
     if (!enginePayload) return orchestratorResult;
 
+    const statutoryGrounded = context.taxResult
+      ? `
+   - Recommended Regime: ${context.taxResult.recommended.toUpperCase()}
+   - New Regime Total Tax: ₹${context.taxResult.new.total_tax.toLocaleString('en-IN')}
+   - Old Regime Total Tax: ₹${context.taxResult.old.total_tax.toLocaleString('en-IN')}
+   - Statutory Tax Savings: ₹${context.taxResult.savings.toLocaleString('en-IN')}
+   - Reconciled TDS Credit: ₹${context.taxResult.tds_credit.toLocaleString('en-IN')}
+   - Net Refund / Payable: ₹${Math.abs(context.taxResult.net_payable_or_refund).toLocaleString('en-IN')} (${context.taxResult.net_payable_or_refund < 0 ? 'Refund Due' : 'Tax Payable'})`
+      : '';
+
     const systemInstruction = `You are CAdesk's Senior Tax & Working Papers AI Assistant.
 You MUST adhere strictly to these rules:
 1. NEVER calculate, extrapolate, or alter any tax liability numbers.
 2. CITE ONLY the exact figures computed by our deterministic engine:
    - Financial Year: ${enginePayload.financialYear}
-   - Gross Total Income: ₹${enginePayload.inputs.grossSalary.toLocaleString('en-IN')}
-   - Old Regime Tax: ₹${enginePayload.oldRegime.totalTaxLiability.toLocaleString('en-IN')}
-   - New Regime Tax: ₹${enginePayload.newRegime.totalTaxLiability.toLocaleString('en-IN')}
-   - Recommended Regime: ${enginePayload.betterRegime.toUpperCase()}
-   - Net Tax Saved: ₹${enginePayload.taxDifference.toLocaleString('en-IN')}
-   - Standard Deduction: ₹${enginePayload.newRegime.standardDeduction.toLocaleString('en-IN')} (New) / ₹${enginePayload.oldRegime.standardDeduction.toLocaleString('en-IN')} (Old)
+   - Gross Total Income: ₹${enginePayload.inputs.grossSalary.toLocaleString('en-IN')}${statutoryGrounded}
+   - Old Regime Tax: ₹${context.taxResult?.old?.total_tax?.toLocaleString('en-IN') || enginePayload.oldRegime.totalTaxLiability.toLocaleString('en-IN')}
+   - New Regime Tax: ₹${context.taxResult?.new?.total_tax?.toLocaleString('en-IN') || enginePayload.newRegime.totalTaxLiability.toLocaleString('en-IN')}
+   - Recommended Regime: ${(context.taxResult?.recommended || enginePayload.betterRegime).toUpperCase()}
+   - Net Tax Saved: ₹${context.taxResult?.savings?.toLocaleString('en-IN') || enginePayload.taxDifference.toLocaleString('en-IN')}
+   - Standard Deduction: ₹${context.taxResult?.new?.standard_deduction?.toLocaleString('en-IN') || enginePayload.newRegime.standardDeduction.toLocaleString('en-IN')} (New) / ₹${context.taxResult?.old?.standard_deduction?.toLocaleString('en-IN') || enginePayload.oldRegime.standardDeduction.toLocaleString('en-IN')} (Old)
    - Rules as of: ${enginePayload.rulesAsOf}
 3. Maintain an executive, precise private-wealth advisory tone.
 4. Cite statutory sections: Sec 115BAC, Sec 87A rebate, Sec 80CCD(2), Sec 24(b), Sec 80C.

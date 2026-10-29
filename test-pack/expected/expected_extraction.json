@@ -1,0 +1,83 @@
+{
+  "01_Form16_PartA.pdf": {
+    "doc_type": "FORM_16_PART_A",
+    "fields": {
+      "employer_tan": "MUMN12345E",
+      "employee_pan": "ABCPM1234K",
+      "total_tds": 195000,
+      "gross_paid": 1800000
+    }
+  },
+  "02_Form16_PartB.pdf": {
+    "doc_type": "FORM_16_PART_B",
+    "fields": {
+      "gross_salary": 1800000,
+      "basic": 720000,
+      "hra_received": 360000,
+      "employer_nps": 72000,
+      "special_allowance": 648000,
+      "standard_deduction": 75000,
+      "professional_tax": 2500,
+      "regime_in_payroll": "new",
+      "sec_80ccd_2": 72000
+    }
+  },
+  "03_Salary_Slip_Mar2026.pdf": {
+    "doc_type": "SALARY_SLIP",
+    "fields": {
+      "month": "2026-03",
+      "basic_monthly": 60000,
+      "hra_monthly": 30000,
+      "employer_nps_monthly": 6000,
+      "gross_monthly": 150000,
+      "epf_monthly": 7200,
+      "annualised_gross": 1800000
+    }
+  },
+  "04_Form26AS_Summary.pdf": {
+    "doc_type": "FORM_26AS",
+    "fields": {
+      "tds_salary_192": 195000,
+      "tds_interest_194A": 4200,
+      "tds_dividend_194": 2500,
+      "total_tds": 201700,
+      "advance_tax_paid": 0
+    }
+  },
+  "05_AIS_TIS.pdf": {
+    "doc_type": "AIS_TIS",
+    "fields": {
+      "salary": 1800000,
+      "interest_savings": 18000,
+      "interest_fd": 42000,
+      "dividend": 25000,
+      "sale_of_securities": 940000
+    }
+  },
+  "06_Capital_Gains_Statement.pdf": {
+    "doc_type": "CAPITAL_GAINS",
+    "fields": {
+      "stcg_111a": 60000,
+      "ltcg_112a": 210000,
+      "ltcg_exempt_limit": 125000,
+      "ltcg_taxable": 85000
+    }
+  },
+  "07_Rent_Receipts_HRA.pdf": {
+    "doc_type": "RENT_RECEIPTS",
+    "fields": {
+      "annual_rent": 360000,
+      "city_type": "metro",
+      "landlord_pan": "BCDPD5678L"
+    }
+  },
+  "08_Investment_Proofs.pdf": {
+    "doc_type": "INVESTMENT_PROOFS",
+    "fields": {
+      "sec_80c_total": 150000,
+      "sec_80d_self": 22000,
+      "sec_80d_parents_senior": 48000,
+      "sec_80ccd_1b": 50000
+    }
+  }
+}

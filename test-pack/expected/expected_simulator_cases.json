@@ -1,0 +1,46 @@
+[
+  {
+    "input": {
+      "gross_salary": 1275000,
+      "basic": 510000,
+      "hra": 0,
+      "employer_nps": 0
+    },
+    "regime": "new",
+    "expected_total_tax": 0,
+    "why": "Taxable 12,00,000 -> 87A rebate 60,000 -> nil"
+  },
+  {
+    "input": {
+      "gross_salary": 1280000,
+      "basic": 512000,
+      "hra": 0,
+      "employer_nps": 0
+    },
+    "regime": "new",
+    "expected_total_tax": 5200,
+    "why": "Income 12,05,000: marginal relief caps tax at 5,000 + 4% cess"
+  },
+  {
+    "input": {
+      "gross_salary": 1300000,
+      "basic": 520000,
+      "hra": 0,
+      "employer_nps": 0
+    },
+    "regime": "new",
+    "expected_total_tax": 26000,
+    "why": "Income 12,25,000: marginal relief caps tax at 25,000 + cess"
+  },
+  {
+    "input": {
+      "gross_salary": 1400000,
+      "basic": 560000,
+      "hra": 0,
+      "employer_nps": 0
+    },
+    "regime": "new",
+    "expected_total_tax": 81900,
+    "why": "No marginal relief beyond ~12.75L; slab tax 78,750 + cess"
+  }
+]

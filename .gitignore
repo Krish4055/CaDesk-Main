@@ -12,4 +12,5 @@ __pycache__/
 demo_recordings/
 .venv/
 venv/
-
+test-artifacts/
+.playwright/

@@ -1,7 +1,10 @@
 /**
  * Screen 3: Individual Dashboard
- * Net-worth card, estimated tax liability, "Tax you could save" headline number,
- * regime comparison mini-chart, upcoming deadlines, recent AI insights, document completeness ring.
+ * Dynamic pipeline driven by uploaded documents:
+ * - Headline "Tax you could save", Net Refund / Payable, TDS Credit
+ * - Statutory cross-checks status & flags
+ * - Old vs New Regime comparison chart
+ * - Empty state: "Upload documents to begin" + "Load demo data" button
  */
 
 import React from 'react';
@@ -17,6 +20,9 @@ import {
   Calculator,
   FolderLock,
   MessageSquare,
+  Upload,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   BarChart,
@@ -37,36 +43,109 @@ import { NextActionCard } from '../components/common/NextActionCard';
 import { CountUpNumber } from '../components/common/CountUpNumber';
 
 export const IndividualDashboard: React.FC = () => {
-  const { activeClient } = useApp();
-  const taxResult = activeClient.taxResult;
+  const {
+    activeClient,
+    taxResult,
+    taxInputs,
+    crossChecks,
+    flags,
+    documents,
+    loadDemoData,
+    isAnalyzing,
+  } = useApp();
 
-  if (!taxResult) return null;
+  // Empty State: No uploaded documents and no demo data loaded
+  if (documents.length === 0 && !isAnalyzing) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title={activeClient.name}
+          description="FY 2025-26 (AY 2026-27) • Individual Tax Assessment"
+          badge={
+            <span className="font-mono text-xs px-2 py-0.5 rounded bg-[var(--surface-raised)] text-[var(--text-secondary)] border border-[var(--hairline)]">
+              PAN: {activeClient.panMasked}
+            </span>
+          }
+          actions={
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => loadDemoData()}
+                className="px-4 py-2 rounded-xl bg-[var(--surface-raised)] hover:bg-[var(--surface)] text-[var(--accent-gold)] border border-[var(--hairline)] text-xs font-mono font-medium flex items-center gap-1.5 transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Load Demo Data</span>
+              </button>
+              <Link
+                to="/vault"
+                className="px-4 py-2 rounded-xl bg-[var(--primary-emerald)] hover:bg-[var(--primary-emerald-hover)] text-white text-xs font-mono font-medium flex items-center gap-2 transition-all shadow-[var(--shadow-soft)]"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Documents</span>
+              </Link>
+            </div>
+          }
+        />
 
-  const betterRegime = taxResult.betterRegime;
+        <JourneyStepper currentStepId="upload" />
+
+        <div className="rounded-2xl border-2 border-dashed border-[var(--hairline)] p-12 text-center bg-[var(--surface)] space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-[var(--surface-raised)] flex items-center justify-center text-[var(--accent-gold)]">
+            <Upload className="w-8 h-8" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-serif text-2xl font-medium text-[var(--text-primary)]">
+              Upload documents to begin
+            </h3>
+            <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto">
+              Please upload Form 16, Salary Slips, Form 26AS, or AIS/TIS to generate dynamic statutory tax calculations.
+              All tax figures are computed deterministically.
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <Link
+              to="/vault"
+              className="px-5 py-2.5 rounded-xl bg-[var(--primary-emerald)] hover:bg-[var(--primary-emerald-hover)] text-white text-xs font-mono font-medium flex items-center gap-2 transition-all shadow-[var(--shadow-soft)]"
+            >
+              <Upload className="w-4 h-4" />
+              <span>Go to Document Vault</span>
+            </Link>
+            <span className="text-xs text-[var(--text-muted)] font-mono">or</span>
+            <button
+              onClick={() => loadDemoData()}
+              className="px-5 py-2.5 rounded-xl bg-[var(--surface-raised)] hover:bg-[var(--surface)] text-[var(--accent-gold)] border border-[var(--hairline)] text-xs font-mono font-medium flex items-center gap-2 transition-colors"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Load Demo Data (8 PDFs)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const betterRegime = taxResult.recommended;
   const betterTax =
-    betterRegime === 'new'
-      ? taxResult.newRegime.totalTaxLiability
-      : taxResult.oldRegime.totalTaxLiability;
+    betterRegime === 'new' ? taxResult.new.total_tax : taxResult.old.total_tax;
   const otherTax =
-    betterRegime === 'new'
-      ? taxResult.oldRegime.totalTaxLiability
-      : taxResult.newRegime.totalTaxLiability;
-  const taxYouCouldSave = Math.max(0, otherTax - betterTax);
+    betterRegime === 'new' ? taxResult.old.total_tax : taxResult.new.total_tax;
+  const taxYouCouldSave = taxResult.savings;
+  const isRefund = taxResult.net_payable_or_refund < 0;
+  const refundOrPayableAmount = Math.abs(taxResult.net_payable_or_refund);
 
   const chartData = [
     {
       name: 'Old Regime',
-      tax: taxResult.oldRegime.totalTaxLiability,
+      tax: taxResult.old.total_tax,
       color: betterRegime === 'old' ? '#1F9D77' : '#6F7782',
     },
     {
       name: 'New Regime (FY26)',
-      tax: taxResult.newRegime.totalTaxLiability,
+      tax: taxResult.new.total_tax,
       color: betterRegime === 'new' ? '#1F9D77' : '#6F7782',
     },
   ];
 
-  const docCompletenessPercent = Math.round((activeClient.documentsCount / 6) * 100);
+  const allChecksPass = crossChecks.length > 0 && crossChecks.every((c) => c.status === 'PASS');
 
   return (
     <div className="space-y-8">
@@ -80,13 +159,20 @@ export const IndividualDashboard: React.FC = () => {
               PAN: {activeClient.panMasked}
             </span>
             <StatusBadge
-              variant={activeClient.signOffStatus === 'approved' ? 'ca_reviewed' : 'ai_prepared'}
-              label={activeClient.signOffStatus === 'approved' ? 'CA Signed Off' : 'AI Working Paper Ready'}
+              variant={allChecksPass ? 'ca_reviewed' : 'ai_prepared'}
+              label={allChecksPass ? '5/5 Cross-Checks PASS' : 'AI Working Paper Ready'}
             />
           </div>
         }
         actions={
           <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => loadDemoData()}
+              className="px-3.5 py-2 rounded-xl bg-[var(--surface-raised)] hover:bg-[var(--surface)] text-[var(--accent-gold)] text-xs font-mono transition-colors border border-[var(--hairline)] flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Load Demo Data</span>
+            </button>
             <Link
               to="/agent-chat"
               className="px-3.5 py-2 rounded-xl bg-[var(--surface-raised)] hover:bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-mono transition-colors border border-[var(--hairline)] flex items-center gap-1.5"
@@ -108,17 +194,41 @@ export const IndividualDashboard: React.FC = () => {
       {/* Persistent Journey Stepper */}
       <JourneyStepper currentStepId="analyze" />
 
+      {/* Flags Alert Banner */}
+      {flags.length > 0 && (
+        <div className="space-y-2">
+          {flags.map((f, idx) => (
+            <div
+              key={idx}
+              className={`p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 ${
+                f.severity === 'warning'
+                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                  : 'bg-blue-500/10 border-blue-500/30 text-blue-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span className="font-mono">{f.flag}</span>
+              </div>
+              <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[var(--surface)] border border-current uppercase">
+                {f.type}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Next Best Action Card */}
       <NextActionCard
-        title="Lock Your FY 2025-26 Regime Choice Before December Advance Tax"
-        description={`Our deterministic engine found that the ${betterRegime === 'new' ? 'New Tax Regime' : 'Old Tax Regime'} saves you ${formatINR(taxYouCouldSave)} compared to the alternative. Review your step-by-step breakdown.`}
+        title={`Lock Your FY 2025-26 Regime Choice: ${betterRegime === 'new' ? 'New Tax Regime' : 'Old Tax Regime'}`}
+        description={`Our deterministic engine confirmed that the ${betterRegime === 'new' ? 'New Tax Regime (Sec 115BAC)' : 'Old Tax Regime'} saves you ${formatINR(taxYouCouldSave)} with a net ${isRefund ? 'refund' : 'payable'} of ${formatINR(refundOrPayableAmount)}. Review your full breakdown.`}
         actionLabel="Review Regime Breakdown"
         actionLink="/tax-optimization"
         tone="emerald"
         badge="Tax Optimization"
       />
 
-      {/* KPI Quad: Headline Savings, Estimated Tax, Net Worth, Completeness */}
+      {/* KPI Quad: Headline Savings, Estimated Tax, TDS Credit, Net Refund / Payable */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Tax You Could Save (HEADLINE NUMBER) */}
         <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--hairline)] shadow-[var(--shadow-soft)] relative overflow-hidden">
@@ -148,69 +258,46 @@ export const IndividualDashboard: React.FC = () => {
           </div>
           <div className="mt-3 flex items-center justify-between text-xs text-[var(--text-secondary)]">
             <span>
-              Effective Rate:{' '}
-              {betterRegime === 'new'
-                ? taxResult.newRegime.effectiveTaxRate
-                : taxResult.oldRegime.effectiveTaxRate}
-              %
+              Alt Regime: {formatINR(otherTax)}
             </span>
             <CitationChip section={betterRegime === 'new' ? '115BAC' : 'Old'} />
           </div>
         </div>
 
-        {/* Card 3: Net Worth Estimate */}
+        {/* Card 3: TDS Credit Reconciled */}
         <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow-soft)] relative">
           <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)] block mb-1">
-            Tracked Net Worth
+            TDS Credit (Form 26AS)
           </span>
           <div className="font-serif text-3xl sm:text-4xl text-[var(--text-primary)] font-semibold tracking-tight">
-            <CountUpNumber value={activeClient.netWorthEstimate || 14500000} />
+            <CountUpNumber value={taxResult.tds_credit} />
           </div>
           <div className="mt-3 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-            <TrendingUp className="w-3.5 h-3.5 text-[var(--primary-emerald)]" />
-            <span>Across MF, EPF, NPS & Property</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-[var(--primary-emerald)]" />
+            <span className="font-mono">Reconciled with TRACES</span>
           </div>
         </div>
 
-        {/* Card 4: Document Completeness */}
+        {/* Card 4: Net Refund Due / Payable */}
         <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow-soft)] flex items-center justify-between">
           <div>
             <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-muted)] block mb-1">
-              Document Completeness
+              {isRefund ? 'Net Refund Due' : 'Net Tax Payable'}
             </span>
-            <div className="font-serif text-3xl font-semibold text-[var(--text-primary)]">
-              {docCompletenessPercent}%
+            <div className={`font-serif text-3xl font-semibold tracking-tight ${isRefund ? 'text-[var(--primary-emerald)]' : 'text-amber-400'}`}>
+              <CountUpNumber value={refundOrPayableAmount} />
             </div>
             <p className="text-xs text-[var(--text-muted)] mt-1 font-mono">
-              {activeClient.documentsCount} of 6 uploaded
+              {isRefund ? 'Direct credit to verified bank account' : 'Advance/Self-assessment required'}
             </p>
           </div>
-          {/* Radial visual indicator */}
-          <div className="relative w-14 h-14 flex items-center justify-center">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              <path
-                className="text-[var(--hairline)]"
-                strokeWidth="3.5"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-              <path
-                className="text-[var(--primary-emerald)] transition-all duration-1000 ease-out"
-                strokeDasharray={`${docCompletenessPercent}, 100`}
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-            </svg>
-            <FolderLock className="w-4 h-4 text-[var(--primary-emerald)] absolute" />
+          <div className="w-12 h-12 rounded-xl bg-[var(--surface-raised)] border border-[var(--hairline)] flex items-center justify-center">
+            <CheckCircle2 className="w-6 h-6 text-[var(--primary-emerald)]" />
           </div>
         </div>
       </div>
 
-      {/* Main Grid: Mini-Chart & Missed Deductions Left (8 cols) & Deadlines/CA Supervision Right (4 cols) */}
+      {/* Main Grid: Mini-Chart & Missed Deductions Left (8 cols) & Statutory Cross-Checks Right (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-6">
           {/* Regime Comparison Box */}
@@ -221,7 +308,7 @@ export const IndividualDashboard: React.FC = () => {
                   Regime Comparison (FY 2025-26)
                 </h3>
                 <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                  Evaluated against standard deduction (₹75k) and Sec 87A rebate limits
+                  Evaluated against standard deduction (₹75k), 111A/112A capital gains, and Sec 87A rebate limits
                 </p>
               </div>
               <Link
@@ -275,9 +362,8 @@ export const IndividualDashboard: React.FC = () => {
                 </span>
                 <p className="text-xs text-[var(--primary-emerald)] mt-0.5">
                   {betterRegime === 'new'
-                    ? 'Opt for New Tax Regime. FY 2025-26 revised slabs save ₹' +
-                      taxYouCouldSave.toLocaleString('en-IN')
-                    : 'Opt for Old Tax Regime. Deductions (HRA + Home Loan) outweigh standard slabs.'}
+                    ? `Opt for New Tax Regime. FY 2025-26 statutory provisions save ₹${taxYouCouldSave.toLocaleString('en-IN')}`
+                    : `Opt for Old Tax Regime. Deductions (HRA + 80C + 80D) save ₹${taxYouCouldSave.toLocaleString('en-IN')}`}
                 </p>
               </div>
               <Link
@@ -289,45 +375,43 @@ export const IndividualDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Missed Deductions & Insights */}
+          {/* Statutory Cross-Checks Box */}
           <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow-soft)]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[var(--accent-gold)]" />
+                <ShieldCheck className="w-5 h-5 text-[var(--primary-emerald)]" />
                 <h3 className="font-serif text-lg font-medium text-[var(--text-primary)]">
-                  AI-Identified Deductions & Adjustments
+                  Statutory Cross-Checks ({crossChecks.filter((c) => c.status === 'PASS').length}/{crossChecks.length} PASS)
                 </h3>
               </div>
-              <span className="text-[11px] font-mono text-[var(--text-muted)]">
-                {taxResult.missedDeductions.length} opportunities detected
+              <span className="text-[11px] font-mono text-[var(--accent-gold)]">
+                Automated Verification
               </span>
             </div>
 
-            <div className="space-y-3">
-              {taxResult.missedDeductions.slice(0, 3).map((item, idx) => (
+            <div className="space-y-3 font-mono text-xs">
+              {crossChecks.map((check, idx) => (
                 <div
                   key={idx}
-                  className="p-3.5 rounded-xl bg-[var(--surface-raised)] border border-[var(--hairline)] hover:border-[var(--accent-gold)]/30 transition-colors flex items-start justify-between gap-4"
+                  className="p-3.5 rounded-xl bg-[var(--surface-raised)] border border-[var(--hairline)] flex items-center justify-between gap-4"
                 >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-[var(--text-primary)]">
-                        {item.title}
-                      </span>
-                      <CitationChip section={item.section} />
-                    </div>
-                    <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
-                      {item.reasoning}
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-xs font-mono font-medium text-[var(--accent-gold)] block">
-                      +{formatINR(item.potentialSavingOld)}
+                  <div className="space-y-1">
+                    <span className="text-[var(--text-primary)] font-medium font-sans block">
+                      {check.check}
                     </span>
-                    <span className="text-[10px] font-mono text-[var(--text-muted)]">
-                      Old Regime Save
+                    <span className="text-[11px] text-[var(--text-muted)]">
+                      {check.details}
                     </span>
                   </div>
+                  <span
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold tracking-wider shrink-0 border ${
+                      check.status === 'PASS'
+                        ? 'bg-[var(--surface)] text-[var(--primary-emerald)] border-[var(--primary-emerald)]/40'
+                        : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+                    }`}
+                  >
+                    {check.status}
+                  </span>
                 </div>
               ))}
             </div>
@@ -398,17 +482,6 @@ export const IndividualDashboard: React.FC = () => {
                   </span>
                 </div>
               </div>
-
-              {activeClient.workingPaperNotes.length > 0 && (
-                <div className="p-3 rounded-xl bg-[var(--surface-raised)] border border-[var(--hairline)]">
-                  <div className="text-[11px] font-mono text-[var(--text-muted)] mb-1">
-                    Latest Note ({activeClient.workingPaperNotes[0].author}):
-                  </div>
-                  <p className="text-[var(--text-secondary)] text-xs italic">
-                    "{activeClient.workingPaperNotes[0].text}"
-                  </p>
-                </div>
-              )}
 
               <Link
                 to={`/reports/${activeClient.id}`}

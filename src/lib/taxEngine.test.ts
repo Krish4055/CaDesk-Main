@@ -1,8 +1,9 @@
 /**
- * Self-contained Unit Tests for Deterministic Tax Engine
- * Validates FY 2025-26 statutory compliance without requiring external test frameworks.
+ * Unit Tests for Deterministic Tax Engine
+ * Validates FY 2025-26 statutory compliance.
  */
 
+import { describe, it, expect } from 'vitest';
 import { computeTaxComparison, calculateHRAExemption, runTaxEngineUnitTests } from './taxEngine';
 
 export interface TestResult {
@@ -14,7 +15,6 @@ export interface TestResult {
 export function executeAllTaxEngineTests(): TestResult[] {
   const tests: TestResult[] = [];
 
-  // Test 1: Core benchmarks
   try {
     const { passed, results } = runTaxEngineUnitTests();
     tests.push({
@@ -30,7 +30,6 @@ export function executeAllTaxEngineTests(): TestResult[] {
     });
   }
 
-  // Test 2: New Regime 12 Lakh rebate
   try {
     const res = computeTaxComparison({ grossSalary: 1200000 });
     const passed = res.newRegime.totalTaxLiability === 0;
@@ -47,7 +46,6 @@ export function executeAllTaxEngineTests(): TestResult[] {
     });
   }
 
-  // Test 3: HRA Exemption Math
   try {
     const hra = calculateHRAExemption(600000, 240000, 300000, true);
     const passed = hra === 240000;
@@ -64,10 +62,9 @@ export function executeAllTaxEngineTests(): TestResult[] {
     });
   }
 
-  // Test 4: Sec 80CCD(2) Allowed in both regimes
   try {
     const res = computeTaxComparison({ grossSalary: 2000000, basicSalary: 1000000, section80CCD2: 100000 });
-    const allowedInNew = res.newRegime.totalDeductions >= 175000; // 75k std ded + 100k 80CCD(2)
+    const allowedInNew = res.newRegime.totalDeductions >= 175000;
     tests.push({
       title: 'Sec 80CCD(2) employer contribution deduction allowed under New Regime',
       passed: allowedInNew,
@@ -83,3 +80,12 @@ export function executeAllTaxEngineTests(): TestResult[] {
 
   return tests;
 }
+
+describe('Deterministic Tax Engine Self-Tests', () => {
+  it('passes statutory benchmark self-tests', () => {
+    const results = executeAllTaxEngineTests();
+    results.forEach((r) => {
+      expect(r.passed, `${r.title}: ${r.message}`).toBe(true);
+    });
+  });
+});

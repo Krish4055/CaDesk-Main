@@ -69,6 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onMobileClose })
     toggleTheme,
     isSidebarCollapsed,
     toggleSidebarCollapse,
+    documents,
   } = useApp();
 
   const location = useLocation();
@@ -222,6 +223,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onMobileClose })
           badge: 'Dec 15',
           matchPrefix: '/deadlines',
         },
+        {
+          id: 'ind-reports',
+          label: 'Reports',
+          path: `/reports/${activeClient.id || 'ind-rohan'}`,
+          icon: FileText,
+          matchPrefix: '/reports',
+        },
       ],
     },
     {
@@ -232,7 +240,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onMobileClose })
           label: 'Document Vault',
           path: '/vault',
           icon: FolderLock,
-          badge: activeClient.documentsCount,
+          badge: documents.length > 0 ? documents.length : (activeClient.documentsCount || undefined),
           matchPrefix: '/vault',
         },
         {
